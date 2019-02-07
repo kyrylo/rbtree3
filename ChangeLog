@@ -1,3 +1,12 @@
+2019-02-07  Kyrylo Silin
+
+        * version 0.5.0 released.
+
+        * rbtree.c: (rbtree_dump): fixed 'TypeError: instance of IO needed'
+
+        * rbtree.c: (RHASH_IFNONE): removed. Fixes compilation error
+        'expression is not assignable'
+
 2009-01-27  OZAWA Takuma
 
 	* version 0.2.1 released.
@@ -45,9 +54,9 @@
 2008-12-24  OZAWA Takuma
 
 	* rbtree.c (rbtree_s_create): check and convert argument inner arrays (assocs) using #to_ary.
-	
+
 	* rbtree.c (rbtree_s_create): check and convert argument hash using #to_hash.
-	
+
 	* rbtree.c (rbtree_s_create): RBTree#[] now takes assocs as source of rbtree conversion.
 
 	* rbtree.c (rbtree_to_hash): can't convert MultiRBTree to Hash.
@@ -55,7 +64,7 @@
 	* rbtree.c (rbtree_s_create): can't convert MultiRBTree to RBTree.
 
 	* rbtree.c (rbtree_s_create, rbtree_values_at): use long for loop counter instead of int.
-	
+
 2007-09-21  OZAWA Takuma
 
 	* extconf.rb: no gcc options for mswin32.
@@ -86,13 +95,13 @@
 
 	* rbtree.c (MultiRBTree): new class. MultiRBTree allows duplicates
 	of keys.
-	
+
 	* rbtree.c (rbtree_dump, rbtree_s_load): use Array as a storage
 	for performance improvement.
 
 	* rbtree.c (rbtree_equal, rbtree_initialize_copy, rbtree_update):
 	should use rb_obj_is_kind_of.
-	
+
 	* rbtree.c (iter_lev): added to count iterator level for nesting
 	and thread-safety.
 
@@ -100,9 +109,9 @@
 
 	* dict.c: remove codes Ruby/RBTree doesn't need. now not supposed
 	to use dict.c with other program.
-	
+
 	* dict.h: ditto.
-	
+
 	* dict.c (dict_equal): remove key_eql argument. use
 	dict->dict_compare to compare keys.
 
@@ -143,7 +152,7 @@
 	* rbtree.c (rbtree_update): was same whether a block is given or not.
 
 2004-05-23  OZAWA Takuma
-	
+
 	* rbtree.c (inspect_rbtree): add OBJ_INFECTs.
 
 	* rbtree.c (inspect_rbtree): change ``compare'' to ``cmp_proc''.
@@ -221,7 +230,7 @@
 
 	* rbtree.c (rbtree_to_rbtree): new method.
 
-	* rbtree.c (each_pair_i, rbtree_bound_body, rbtree_delete_if_body, 
+	* rbtree.c (each_pair_i, rbtree_bound_body, rbtree_delete_if_body,
 	  select_i, update_block_i): use rb_yield_values.
 
 	* rbtree.c (rbtree_each): RBTree#each should yield single value.
