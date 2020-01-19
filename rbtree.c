@@ -15,6 +15,10 @@
 #define RETURN_ENUMERATOR(obj, argc, argv) ((void)0)
 #endif
 
+#if !defined(RUBY_API_VERSION_CODE) || (RUBY_API_VERSION_CODE < 20700)
+#define HAVE_TAINT
+#endif
+
 VALUE RBTree;
 VALUE MultiRBTree;
 
@@ -121,8 +125,10 @@ rbtree_modify(VALUE self)
         rb_raise(rb_eTypeError, "can't modify rbtree in iteration");
     if (OBJ_FROZEN(self))
         rb_error_frozen("rbtree");
+#ifdef HAVE_TAINT
     if (!OBJ_TAINTED(self) && rb_safe_level() >= 4)
         rb_raise(rb_eSecurityError, "Insecure: can't modify rbtree");
+#endif
 }
 
 static VALUE
@@ -1052,7 +1058,9 @@ rbtree_to_a(VALUE self)
 {
     VALUE ary = rb_ary_new();
     rbtree_for_each(self, to_a_i, (void*)ary);
+#ifdef HAVE_TAINT
     OBJ_INFECT(ary, self);
+#endif
     return ary;
 }
 
@@ -1078,7 +1086,9 @@ rbtree_to_hash(VALUE self)
     rbtree_for_each(self, to_hash_i, (void*)hash);
     if (FL_TEST(self, RBTREE_PROC_DEFAULT))
         FL_SET(hash, HASH_PROC_DEFAULT);
+#ifdef HAVE_TAINT
     OBJ_INFECT(hash, self);
+#endif
     return hash;
 }
 
@@ -1144,13 +1154,17 @@ inspect_i(dnode_t* node, void* ret_)
 
     str = rb_inspect(GET_KEY(node));
     rb_str_append(ret, str);
+#ifdef HAVE_TAINT
     OBJ_INFECT(ret, str);
+#endif
 
     rb_str_cat2(ret, "=>");
 
     str = rb_inspect(GET_VAL(node));
     rb_str_append(ret, str);
+#ifdef HAVE_TAINT
     OBJ_INFECT(ret, str);
+#endif
 
     return EACH_NEXT;
 }
@@ -1169,15 +1183,21 @@ inspect_rbtree(VALUE self, VALUE ret)
     str = rb_inspect(IFNONE(self));
     rb_str_cat2(ret, ", default=");
     rb_str_append(ret, str);
+#ifdef HAVE_TAINT
     OBJ_INFECT(ret, str);
+#endif
 
     str = rb_inspect((VALUE)CONTEXT(self));
     rb_str_cat2(ret, ", cmp_proc=");
     rb_str_append(ret, str);
+#ifdef HAVE_TAINT
     OBJ_INFECT(ret, str);
+#endif
 
     rb_str_cat2(ret, ">");
+#ifdef HAVE_TAINT
     OBJ_INFECT(ret, self);
+#endif
     return ret;
 }
 

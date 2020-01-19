@@ -534,7 +534,11 @@ class RBTreeTest < Test::Unit::TestCase
     tree, default, cmp_proc = match.to_a[1..-1]
     assert_equal(%({"a"=>"A", "b"=>"B", "c"=>"C", "d"=>"D"}), tree)
     assert_equal(%("e"), default)
-    assert_match(/#<Proc:\w+(@#{__FILE__}:\d+)?>/o, cmp_proc)
+    if @rbtree.cmp_proc.respond_to?("source_location")
+      assert_equal(File.basename(__FILE__), @rbtree.cmp_proc.source_location[0])
+    else
+      assert_match(/#<Proc:\w+(@#{__FILE__}:\d+)?>/o, cmp_proc)
+    end
 
     rbtree = RBTree.new
     assert_match(re, rbtree.inspect)
