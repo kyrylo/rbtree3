@@ -518,6 +518,15 @@ class RBTreeTest < Test::Unit::TestCase
     @rbtree.default = "e"
     hash = @rbtree.to_hash
     assert_equal(@rbtree.to_a.flatten, hash.to_a.flatten)
+    assert_equal("e", hash.default)
+
+    rbtree = RBTree.new { "e" }
+    hash = rbtree.to_hash
+    if (hash.respond_to?(:default_proc))
+      assert_equal(rbtree.default_proc, hash.default_proc)
+    else
+      assert_equal(rbtree.default_proc, hash.default)
+    end
   end
 
   def test_to_rbtree

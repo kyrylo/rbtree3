@@ -15,6 +15,10 @@
 #define RETURN_ENUMERATOR(obj, argc, argv) ((void)0)
 #endif
 
+#ifndef RHASH_SET_IFNONE
+#define RHASH_SET_IFNONE(h, ifnone) (RHASH_IFNONE(h) = ifnone)
+#endif
+
 #if !defined(RUBY_API_VERSION_CODE) || (RUBY_API_VERSION_CODE < 20700)
 #define HAVE_TAINT
 #endif
@@ -1084,6 +1088,7 @@ rbtree_to_hash(VALUE self)
 
     hash = rb_hash_new();
     rbtree_for_each(self, to_hash_i, (void*)hash);
+    RHASH_SET_IFNONE(hash, IFNONE(self));
     if (FL_TEST(self, RBTREE_PROC_DEFAULT))
         FL_SET(hash, HASH_PROC_DEFAULT);
 #ifdef HAVE_TAINT
