@@ -517,7 +517,9 @@ class RBTreeTest < Test::Unit::TestCase
   def test_to_hash
     @rbtree.default = "e"
     hash = @rbtree.to_hash
-    assert_equal(@rbtree.to_a.flatten, hash.to_a.flatten)
+    hash_a = hash.to_a
+    hash_a.sort! if RUBY_VERSION < "1.9"  # Hash ordering isn't stable in < 1.9.
+    assert_equal(@rbtree.to_a.flatten, hash_a.flatten)
     assert_equal("e", hash.default)
 
     rbtree = RBTree.new { "e" }
