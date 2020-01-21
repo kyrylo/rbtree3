@@ -1,3 +1,21 @@
+2020-01-21  Brian Hawley
+
+        * version 0.6.0 released.
+
+        * test.rb: improved 1.8.7 compatibility
+
+        * rbtree.c: made RBTREE(rbtree) do the type conversion, like RARRAY and
+        such do
+
+        * rbtree.c: Used Data_Make_Struct instead of doing the same thing that
+        it used to do, in order to be compatible with MJIT and compaction GC.
+
+        * rbtree.c: restored to_hash default preservation removed in 0.5.0 and
+        made it compatible with newer Rubies
+
+        * rbtree.c: made code compatible with Ruby 2.7 and fixed warnings about
+        deprecated taint mechanism
+
 2019-02-07  Kyrylo Silin
 
         * version 0.5.0 released.
