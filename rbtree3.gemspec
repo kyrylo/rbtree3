@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = 'rbtree3'
-  s.version = '0.5.0'
+  s.version = '0.6.0'
   s.authors = ['Kyrylo Silin', 'OZAWA Takuma']
   s.email = %w[silin@kyrylo.org]
 
@@ -29,7 +29,7 @@ Gem::Specification.new do |s|
 
   s.test_files = %w[test.rb]
 
-  s.required_ruby_version = '>= 2.1'
+  s.required_ruby_version = '>= 1.8'
 
   s.platform = Gem::Platform::RUBY
   s.extensions = %w[extconf.rb]
