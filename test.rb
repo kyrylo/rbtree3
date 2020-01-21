@@ -517,7 +517,18 @@ class RBTreeTest < Test::Unit::TestCase
   def test_to_hash
     @rbtree.default = "e"
     hash = @rbtree.to_hash
-    assert_equal(@rbtree.to_a.flatten, hash.to_a.flatten)
+    hash_a = hash.to_a
+    hash_a.sort! if RUBY_VERSION < "1.9"  # Hash ordering isn't stable in < 1.9.
+    assert_equal(@rbtree.to_a.flatten, hash_a.flatten)
+    assert_equal("e", hash.default)
+
+    rbtree = RBTree.new { "e" }
+    hash = rbtree.to_hash
+    if (hash.respond_to?(:default_proc))
+      assert_equal(rbtree.default_proc, hash.default_proc)
+    else
+      assert_equal(rbtree.default_proc, hash.default)
+    end
   end
 
   def test_to_rbtree
@@ -534,7 +545,11 @@ class RBTreeTest < Test::Unit::TestCase
     tree, default, cmp_proc = match.to_a[1..-1]
     assert_equal(%({"a"=>"A", "b"=>"B", "c"=>"C", "d"=>"D"}), tree)
     assert_equal(%("e"), default)
-    assert_match(/#<Proc:\w+(@#{__FILE__}:\d+)?>/o, cmp_proc)
+    if @rbtree.cmp_proc.respond_to?("source_location")
+      assert_equal(File.basename(__FILE__), @rbtree.cmp_proc.source_location[0])
+    else
+      assert_match(/#<Proc:\w+(@#{__FILE__}:\d+)?>/o, cmp_proc)
+    end
 
     rbtree = RBTree.new
     assert_match(re, rbtree.inspect)

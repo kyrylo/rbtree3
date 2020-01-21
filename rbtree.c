@@ -2,9 +2,17 @@
  * MIT License
  * Copyright (c) 2002-2004, 2007, 2009 OZAWA Takuma
  */
-#include <ruby/ruby.h>
+#include <ruby.h>
+#ifdef HAVE_RUBY_VERSION_H
 #include <ruby/version.h>
+#else
+#include <version.h>
+#endif
+#ifdef HAVE_RUBY_ST_H
 #include <ruby/st.h>
+#else
+#include <st.h>
+#endif
 #include <stdarg.h>
 #include "dict.h"
 
@@ -13,6 +21,19 @@
 
 #ifndef RETURN_ENUMERATOR
 #define RETURN_ENUMERATOR(obj, argc, argv) ((void)0)
+#endif
+
+#ifndef RHASH_SET_IFNONE
+#define RHASH_SET_IFNONE(h, ifnone) (RHASH_IFNONE(h) = ifnone)
+#endif
+
+#ifndef RB_BLOCK_CALL_FUNC_ARGLIST
+#define RB_BLOCK_CALL_FUNC_ARGLIST(yielded_arg, callback_arg) \
+    VALUE yielded_arg, VALUE callback_arg
+#endif
+
+#if !defined(RUBY_API_VERSION_CODE) || (RUBY_API_VERSION_CODE < 20700)
+#define HAVE_TAINT
 #endif
 
 VALUE RBTree;
@@ -29,10 +50,10 @@ typedef struct {
     int iter_lev;
 } rbtree_t;
 
-#define RBTREE(rbtree) DATA_PTR(rbtree)
-#define DICT(rbtree) ((rbtree_t*)RBTREE(rbtree))->dict
-#define IFNONE(rbtree) ((rbtree_t*)RBTREE(rbtree))->ifnone
-#define ITER_LEV(rbtree) ((rbtree_t*)RBTREE(rbtree))->iter_lev
+#define RBTREE(rbtree) ((rbtree_t*)DATA_PTR(rbtree))
+#define DICT(rbtree) RBTREE(rbtree)->dict
+#define IFNONE(rbtree) RBTREE(rbtree)->ifnone
+#define ITER_LEV(rbtree) RBTREE(rbtree)->iter_lev
 #define COMPARE(rbtree) DICT(rbtree)->dict_compare
 #define CONTEXT(rbtree) DICT(rbtree)->dict_context
 
@@ -90,6 +111,7 @@ rbtree_free_node(dnode_t* node, void* context)
     xfree(node);
 }
 
+NORETURN(static void rbtree_argc_error());
 static void
 rbtree_argc_error()
 {
@@ -121,17 +143,19 @@ rbtree_modify(VALUE self)
         rb_raise(rb_eTypeError, "can't modify rbtree in iteration");
     if (OBJ_FROZEN(self))
         rb_error_frozen("rbtree");
+#ifdef HAVE_TAINT
     if (!OBJ_TAINTED(self) && rb_safe_level() >= 4)
         rb_raise(rb_eSecurityError, "Insecure: can't modify rbtree");
+#endif
 }
 
 static VALUE
 rbtree_alloc(VALUE klass)
 {
     dict_t* dict;
-    VALUE rbtree = Data_Wrap_Struct(klass, rbtree_mark, rbtree_free, 0);
-    RBTREE(rbtree) = ALLOC(rbtree_t);
-    MEMZERO(RBTREE(rbtree), rbtree_t, 1);
+    rbtree_t* rbtree_ptr;
+    VALUE rbtree = Data_Make_Struct(klass, rbtree_t, rbtree_mark, rbtree_free,
+                                    rbtree_ptr);
 
     dict = dict_create(rbtree_cmp);
     dict_set_allocator(dict, rbtree_alloc_node, rbtree_free_node,
@@ -139,8 +163,8 @@ rbtree_alloc(VALUE klass)
     if (klass == MultiRBTree)
         dict_allow_dupes(dict);
 
-    DICT(rbtree) = dict;
-    IFNONE(rbtree) = Qnil;
+    rbtree_ptr->dict = dict;
+    rbtree_ptr->ifnone = Qnil;
     return rbtree;
 }
 
@@ -256,8 +280,9 @@ typedef struct {
 } insert_node_t;
 
 static VALUE
-insert_node_body(insert_node_t* arg)
+insert_node_body(VALUE arg_)
 {
+    insert_node_t* arg = (insert_node_t*)arg_;
     if (dict_insert(arg->dict, arg->node, arg->key))
         arg->ret = NODE_NOT_FOUND;
     else
@@ -266,8 +291,9 @@ insert_node_body(insert_node_t* arg)
 }
 
 static VALUE
-insert_node_ensure(insert_node_t* arg)
+insert_node_ensure(VALUE arg_)
 {
+    insert_node_t* arg = (insert_node_t*)arg_;
     dict_t* dict = arg->dict;
     dnode_t* node = arg->node;
     switch (arg->ret) {
@@ -468,8 +494,9 @@ rbtree_each_ensure(VALUE self)
 }
 
 static VALUE
-rbtree_each_body(rbtree_each_arg_t* arg)
+rbtree_each_body(VALUE arg_)
 {
+    rbtree_each_arg_t* arg = (rbtree_each_arg_t*)arg_;
     VALUE self = arg->self;
     dict_t* dict = DICT(self);
     dnode_t* node;
@@ -770,8 +797,9 @@ typedef struct {
 } rbtree_delete_if_arg_t;
 
 static VALUE
-rbtree_delete_if_ensure(rbtree_delete_if_arg_t* arg)
+rbtree_delete_if_ensure(VALUE arg_)
 {
+    rbtree_delete_if_arg_t* arg = (rbtree_delete_if_arg_t*)arg_;
     dict_t* dict = DICT(arg->self);
     dnode_list_t* list = arg->list;
 
@@ -788,8 +816,9 @@ rbtree_delete_if_ensure(rbtree_delete_if_arg_t* arg)
 }
 
 static VALUE
-rbtree_delete_if_body(rbtree_delete_if_arg_t* arg)
+rbtree_delete_if_body(VALUE arg_)
 {
+    rbtree_delete_if_arg_t* arg = (rbtree_delete_if_arg_t*)arg_;
     VALUE self = arg->self;
     dict_t* dict = DICT(self);
     dnode_t* node;
@@ -1052,7 +1081,9 @@ rbtree_to_a(VALUE self)
 {
     VALUE ary = rb_ary_new();
     rbtree_for_each(self, to_a_i, (void*)ary);
+#ifdef HAVE_TAINT
     OBJ_INFECT(ary, self);
+#endif
     return ary;
 }
 
@@ -1076,9 +1107,12 @@ rbtree_to_hash(VALUE self)
 
     hash = rb_hash_new();
     rbtree_for_each(self, to_hash_i, (void*)hash);
+    RHASH_SET_IFNONE(hash, IFNONE(self));
     if (FL_TEST(self, RBTREE_PROC_DEFAULT))
         FL_SET(hash, HASH_PROC_DEFAULT);
+#ifdef HAVE_TAINT
     OBJ_INFECT(hash, self);
+#endif
     return hash;
 }
 
@@ -1144,13 +1178,17 @@ inspect_i(dnode_t* node, void* ret_)
 
     str = rb_inspect(GET_KEY(node));
     rb_str_append(ret, str);
+#ifdef HAVE_TAINT
     OBJ_INFECT(ret, str);
+#endif
 
     rb_str_cat2(ret, "=>");
 
     str = rb_inspect(GET_VAL(node));
     rb_str_append(ret, str);
+#ifdef HAVE_TAINT
     OBJ_INFECT(ret, str);
+#endif
 
     return EACH_NEXT;
 }
@@ -1169,15 +1207,21 @@ inspect_rbtree(VALUE self, VALUE ret)
     str = rb_inspect(IFNONE(self));
     rb_str_cat2(ret, ", default=");
     rb_str_append(ret, str);
+#ifdef HAVE_TAINT
     OBJ_INFECT(ret, str);
+#endif
 
     str = rb_inspect((VALUE)CONTEXT(self));
     rb_str_cat2(ret, ", cmp_proc=");
     rb_str_append(ret, str);
+#ifdef HAVE_TAINT
     OBJ_INFECT(ret, str);
+#endif
 
     rb_str_cat2(ret, ">");
+#ifdef HAVE_TAINT
     OBJ_INFECT(ret, self);
+#endif
     return ret;
 }
 
@@ -1252,8 +1296,9 @@ typedef struct {
 } rbtree_bound_arg_t;
 
 static VALUE
-rbtree_bound_body(rbtree_bound_arg_t* arg)
+rbtree_bound_body(VALUE arg_)
 {
+    rbtree_bound_arg_t* arg = (rbtree_bound_arg_t*)arg_;
     VALUE self = arg->self;
     dict_t* dict = DICT(self);
     dnode_t* lower_node = arg->lower_node;
@@ -1452,8 +1497,9 @@ pp_object_group(VALUE arg_)
 }
 
 static VALUE
-pp_block(VALUE nil, pp_arg_t* arg)
+pp_block(RB_BLOCK_CALL_FUNC_ARGLIST(nil, arg_))
 {
+    pp_arg_t* arg = (pp_arg_t*)arg_;
     VALUE pp = arg->pp;
     VALUE rbtree = arg->rbtree;
 
@@ -1464,7 +1510,7 @@ pp_block(VALUE nil, pp_arg_t* arg)
     rb_funcall(pp, id_pp, 1, IFNONE(rbtree));
     rb_funcall(pp, id_comma_breakable, 0);
     rb_funcall(pp, id_text, 1, rb_str_new2("cmp_proc="));
-    rb_funcall(pp, id_pp, 1, CONTEXT(rbtree));
+    rb_funcall(pp, id_pp, 1, (VALUE)CONTEXT(rbtree));
     return pp;
 }
 
