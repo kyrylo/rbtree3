@@ -48,6 +48,12 @@ jobs:
     steps:
       - checkout
       - <<: *unit
+  "ruby-3.0":
+    docker:
+      - image: circleci/ruby:3.0
+    steps:
+      - checkout
+      - <<: *unit
 
 workflows:
   version: 2
@@ -60,3 +66,4 @@ workflows:
       - "ruby-2.5"
       - "ruby-2.6"
       - "ruby-2.7"
+      - "ruby-3.0"
