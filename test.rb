@@ -701,7 +701,7 @@ class RBTreeTest < Test::Unit::TestCase
     end
   end
 
-  def test_marshal
+  def test_marshal_dump
     assert_equal(@rbtree, Marshal.load(Marshal.dump(@rbtree)))
 
     @rbtree.default = "e"
@@ -890,7 +890,7 @@ class MultiRBTreeTest < Test::Unit::TestCase
     assert_equal(%w(c C b B b C b D a A), @rbtree.to_a.flatten)
   end
 
-  def test_marshal
+  def test_marshal_dump_load
     assert_equal(@rbtree, Marshal.load(Marshal.dump(@rbtree)))
   end
 
