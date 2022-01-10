@@ -665,8 +665,6 @@ copy_dict(VALUE src, VALUE dest, dict_comp_t cmp,  void* context)
         DICT(temp) = DICT(dest);
         DICT(dest) = t;
     }
-    rbtree_free(RBTREE(temp));
-    rb_gc_force_recycle(temp);
 }
 
 /*
@@ -1575,7 +1573,6 @@ rbtree_dump(VALUE self, VALUE _limit)
 
     ret = rb_marshal_dump(ary, Qnil);
     rb_ary_clear(ary);
-    rb_gc_force_recycle(ary);
     return ret;
 }
 
@@ -1596,7 +1593,6 @@ rbtree_s_load(VALUE klass, VALUE str)
     IFNONE(rbtree) = ptr[len];
 
     rb_ary_clear(ary);
-    rb_gc_force_recycle(ary);
     return rbtree;
 }
 
