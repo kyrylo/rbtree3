@@ -1652,7 +1652,7 @@ rbtree_s_load(VALUE klass, VALUE str)
  */
 void Init_rbtree()
 {
-    MultiRBTree = rb_define_class("MultiRBTree", rb_cData);
+    MultiRBTree = rb_define_class("MultiRBTree", rb_cObject);
     RBTree = rb_define_class("RBTree", MultiRBTree);
 
     rb_include_module(MultiRBTree, rb_mEnumerable);
