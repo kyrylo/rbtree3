@@ -1,3 +1,16 @@
+2022-01-10 Kyrylo Silin
+
+* version 0.7.0 released.
+
+* started testing against Ruby 3.0, 3.1 and Ruby head
+
+* test.rb: fixed duplicate test names
+
+* rbtree.c: deleted deprecated rb_gc_force_recycle calls
+
+* rbtree.c: (Init_rbtree): MultiRBTree inherits from rb_cObject instead of
+  rb_cData, which fixed a compilation error on Ruby 3.1+
+
 2020-01-21  Brian Hawley
 
         * version 0.6.0 released.
