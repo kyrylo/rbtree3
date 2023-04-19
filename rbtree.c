@@ -122,7 +122,7 @@ static int
 rbtree_cmp(const void* key1, const void* key2, void* context)
 {
     VALUE ret;
-    if (TYPE(key1) == T_STRING && TYPE(key2) == T_STRING)
+    if (TYPE((VALUE)key1) == T_STRING && TYPE((VALUE)key2) == T_STRING)
         return rb_str_cmp((VALUE)key1, (VALUE)key2);
     ret = rb_funcall((VALUE)key1, id_cmp, 1, (VALUE)key2);
     return cmpint(ret, (VALUE)key1, (VALUE)key2);
@@ -301,7 +301,7 @@ insert_node_ensure(VALUE arg_)
         dict->dict_freenode(node, dict->dict_context);
         break;
     case NODE_NOT_FOUND:
-        if (TYPE(arg->key) == T_STRING)
+        if (TYPE((VALUE)arg->key) == T_STRING)
             node->dict_key = TO_KEY(rb_str_new4(GET_KEY(node)));
         break;
     case NODE_FOUND:
@@ -377,7 +377,7 @@ rbtree_fetch(int argc, VALUE* argv, VALUE self)
         rbtree_argc_error();
     block_given = rb_block_given_p();
     if (block_given && argc == 2)
-	rb_warn("block supersedes default value argument");
+        rb_warn("block supersedes default value argument");
 
     node = dict_lookup(DICT(self), TO_KEY(argv[0]));
     if (node != NULL)
