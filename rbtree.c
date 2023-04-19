@@ -121,11 +121,11 @@ rbtree_argc_error()
 static int
 rbtree_cmp(const void* key1, const void* key2, void* context)
 {
-  VALUE ret;
-  if (TYPE((VALUE)key1) == T_STRING && TYPE((VALUE)key2) == T_STRING)
-    return rb_str_cmp((VALUE)key1, (VALUE)key2);
-  ret = rb_funcall((VALUE)key1, id_cmp, 1, (VALUE)key2);
-  return cmpint(ret, (VALUE)key1, (VALUE)key2);
+    VALUE ret;
+    if (TYPE((VALUE)key1) == T_STRING && TYPE((VALUE)key2) == T_STRING)
+        return rb_str_cmp((VALUE)key1, (VALUE)key2);
+    ret = rb_funcall((VALUE)key1, id_cmp, 1, (VALUE)key2);
+    return cmpint(ret, (VALUE)key1, (VALUE)key2);
 }
 
 static int
@@ -377,7 +377,7 @@ rbtree_fetch(int argc, VALUE* argv, VALUE self)
         rbtree_argc_error();
     block_given = rb_block_given_p();
     if (block_given && argc == 2)
-  rb_warn("block supersedes default value argument");
+        rb_warn("block supersedes default value argument");
 
     node = dict_lookup(DICT(self), TO_KEY(argv[0]));
     if (node != NULL)
