@@ -1,3 +1,9 @@
+2023-04-20 Tsimnuj Hawj
+
+  * version 0.7.1 released.
+
+  * rbtree.c: (rbtree_cmp): compilation fixes for Apple M1 chips (and newer)
+
 2022-01-10 Kyrylo Silin
 
 * version 0.7.0 released.
