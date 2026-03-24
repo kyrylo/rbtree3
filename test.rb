@@ -722,27 +722,30 @@ class RBTreeTest < Test::Unit::TestCase
 
     def test_pp
       assert_equal(%(#<RBTree: {}, default=nil, cmp_proc=nil>\n),
-                   PP.pp(RBTree[], ""))
-      assert_equal(%(#<RBTree: {"a" => "A", "b" => "B"}, default=nil, cmp_proc=nil>\n),
+                    PP.pp(RBTree[], ""))
+
+      arrow = RUBY_VERSION >= "3.4" ? " => " : "=>"
+
+      assert_equal(%(#<RBTree: {"a"#{arrow}"A", "b"#{arrow}"B"}, default=nil, cmp_proc=nil>\n),
                    PP.pp(RBTree[*%w(a A b B)], ""))
 
       rbtree = RBTree[*("a".."z").to_a]
       rbtree.default = "a"
       rbtree.readjust {|a, b| a <=> b }
       expected = <<EOS
-#<RBTree: {"a" => "b",
-  "c" => "d",
-  "e" => "f",
-  "g" => "h",
-  "i" => "j",
-  "k" => "l",
-  "m" => "n",
-  "o" => "p",
-  "q" => "r",
-  "s" => "t",
-  "u" => "v",
-  "w" => "x",
-  "y" => "z"},
+#<RBTree: {"a"#{arrow}"b",
+  "c"#{arrow}"d",
+  "e"#{arrow}"f",
+  "g"#{arrow}"h",
+  "i"#{arrow}"j",
+  "k"#{arrow}"l",
+  "m"#{arrow}"n",
+  "o"#{arrow}"p",
+  "q"#{arrow}"r",
+  "s"#{arrow}"t",
+  "u"#{arrow}"v",
+  "w"#{arrow}"x",
+  "y"#{arrow}"z"},
  default="a",
  cmp_proc=#{rbtree.cmp_proc}>
 EOS
@@ -752,7 +755,7 @@ EOS
       rbtree[rbtree] = rbtree
       rbtree.default = rbtree
       expected = <<EOS
-#<RBTree: {"#<RBTree: ...>" => "#<RBTree: ...>"},
+#<RBTree: {"#<RBTree: ...>"#{arrow}"#<RBTree: ...>"},
  default="#<RBTree: ...>",
  cmp_proc=nil>
 EOS
