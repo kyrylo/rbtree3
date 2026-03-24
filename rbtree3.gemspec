@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = 'rbtree3'
-  s.version = '0.7.1'
+  s.version = '1.0.0'
   s.authors = ['Kyrylo Silin', 'OZAWA Takuma']
   s.email = %w[silin@kyrylo.org]
 
