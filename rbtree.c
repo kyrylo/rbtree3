@@ -1488,13 +1488,6 @@ typedef struct {
 } pp_arg_t;
 
 static VALUE
-pp_object_group(VALUE arg_)
-{
-    pp_arg_t* arg = (pp_arg_t*)arg_;
-    return rb_funcall(arg->pp, id_object_group, 1, arg->rbtree);
-}
-
-static VALUE
 pp_block(RB_BLOCK_CALL_FUNC_ARGLIST(nil, arg_))
 {
     pp_arg_t* arg = (pp_arg_t*)arg_;
@@ -1524,8 +1517,11 @@ rbtree_pretty_print(VALUE self, VALUE pp)
     pp_arg.rbtree = self;
     pp_arg.pp = pp;
 
-    return rb_iterate(pp_object_group, (VALUE)&pp_arg,
-                      pp_block, (VALUE)&pp_arg);
+    {
+        VALUE argv = pp_arg.rbtree;
+        return rb_block_call(pp_arg.pp, id_object_group, 1, &argv,
+                             pp_block, (VALUE)&pp_arg);
+    }
 }
 
 /*
