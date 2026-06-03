@@ -50,7 +50,11 @@ typedef struct {
     int iter_lev;
 } rbtree_t;
 
+#ifdef TypedData_Make_Struct
+#define RBTREE(rbtree) rbtree_get(rbtree)
+#else
 #define RBTREE(rbtree) ((rbtree_t*)DATA_PTR(rbtree))
+#endif
 #define DICT(rbtree) RBTREE(rbtree)->dict
 #define IFNONE(rbtree) RBTREE(rbtree)->ifnone
 #define ITER_LEV(rbtree) RBTREE(rbtree)->iter_lev
@@ -72,16 +76,18 @@ cmpint(VALUE i, VALUE a, VALUE b)
 }
 
 static void
-rbtree_free(rbtree_t* rbtree)
+rbtree_free(void* arg)
 {
+    rbtree_t* rbtree = arg;
     dict_free_nodes(rbtree->dict);
     dict_destroy(rbtree->dict);
     xfree(rbtree);
 }
 
 static void
-rbtree_mark(rbtree_t* rbtree)
+rbtree_mark(void* arg)
 {
+    rbtree_t* rbtree = arg;
     if (rbtree == NULL) return;
 
     if (rbtree->dict != NULL) {
@@ -98,6 +104,30 @@ rbtree_mark(rbtree_t* rbtree)
     }
     rb_gc_mark(rbtree->ifnone);
 }
+
+#ifdef TypedData_Make_Struct
+static size_t
+rbtree_memsize(const void* arg)
+{
+    return arg ? sizeof(rbtree_t) : 0;
+}
+
+static const rb_data_type_t rbtree_type = {
+    "RBTree",
+    {
+        rbtree_mark, rbtree_free, rbtree_memsize,
+    },
+    NULL, NULL, 0,
+};
+
+static rbtree_t*
+rbtree_get(VALUE rbtree)
+{
+    rbtree_t* ptr;
+    TypedData_Get_Struct(rbtree, rbtree_t, &rbtree_type, ptr);
+    return ptr;
+}
+#endif
 
 static dnode_t*
 rbtree_alloc_node(void* context)
@@ -154,8 +184,13 @@ rbtree_alloc(VALUE klass)
 {
     dict_t* dict;
     rbtree_t* rbtree_ptr;
+#ifdef TypedData_Make_Struct
+    VALUE rbtree = TypedData_Make_Struct(klass, rbtree_t, &rbtree_type,
+                                         rbtree_ptr);
+#else
     VALUE rbtree = Data_Make_Struct(klass, rbtree_t, rbtree_mark, rbtree_free,
                                     rbtree_ptr);
+#endif
 
     dict = dict_create(rbtree_cmp);
     dict_set_allocator(dict, rbtree_alloc_node, rbtree_free_node,
